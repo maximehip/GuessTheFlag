@@ -7,6 +7,39 @@
 
 import SwiftUI
 
+struct FlagImage: View {
+    @State var image: String
+    var body: some View {
+        Image(image)
+            .renderingMode(.original)
+            .clipShape(Capsule())
+            .shadow(radius: 10)
+    }
+}
+
+struct Custom: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .foregroundColor(.blue)
+    }
+}
+
+struct Title: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.largeTitle)
+            .shadow(color: .red, radius: 20)
+    }
+}
+
+
+
+extension View {
+    func titleStyle() -> some View {
+        modifier(Title())
+    }
+}
+
 struct ContentView: View {
     @State var showingAlert = false
     @State private var countries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Monaco", "Nigeria", "Poland", "Russia", "Spain", "UK", "USA"]
@@ -16,6 +49,7 @@ struct ContentView: View {
     @State private var scoreMessage = ""
     @State private var score = 0
     @State private var questions = 0
+    @State private var animationAmount = 0.0
     var body: some View {
         ZStack {
             RadialGradient(stops: [.init(color: Color(red: 0.1, green: 0.2, blue: 0.45), location: 0.3),
@@ -24,8 +58,7 @@ struct ContentView: View {
             VStack {
                 Spacer()
                 Text("Guess The Flag")
-                    .font(.largeTitle.bold())
-                    .foregroundColor(.white)
+                    .titleStyle()
                 VStack(spacing: 15) {
                     VStack {
                         Text("Tap flag of ")
@@ -37,12 +70,12 @@ struct ContentView: View {
                     VStack {
                         ForEach(0..<3) { number in
                             Button {
-                                flapTapped(number)
+                                withAnimation {
+                                    flapTapped(number)
+                                }
                             } label: {
-                                Image(countries[number])
-                                    .renderingMode(.original)
-                                    .clipShape(Capsule())
-                                    .shadow(radius: 10)
+                                FlagImage(image: countries[number])
+                                    .rotation3DEffect(.degrees(animationAmount), axis: (x: 0, y: 1, z: 0))
                             }
                         }
                     }
@@ -72,6 +105,7 @@ struct ContentView: View {
     }
     
     func flapTapped(_ number: Int) {
+        animationAmount += 360
         if (questions != 8) {
             if number == correctAnswer {
                 score += 1
